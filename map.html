@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <!-- 🔥 Versión correcta -->
   <style>
     /* 🔥 Elimina el scroll y ajusta el mapa a pantalla completa */
     html, body {
@@ -29,27 +29,39 @@
   <div id="map"></div>
 
   <script>
-    // 🔥 Configurar Supabase
-    const supabaseUrl = "https://ktxbhvfxkerozusfolsl.supabase.co";  // ⚠️ Reemplaza con tu URL de Supabase
-    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGJodmZ4a2Vyb3p1c2ZvbHNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1Mjc2NzUsImV4cCI6MjA1ODEwMzY3NX0.ZEVwnBmiX7_Nssd5AqliMInzALwF8T33BAA3pe9Nr0o";  // ⚠️ Reemplaza con tu API Key
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    // 🔥 Configurar Supabase correctamente ANTES de usarlo
+    const supabaseUrl = "https://ktxbhvfxkerozusfolsl.supabase.co";  
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGJodmZ4a2Vyb3p1c2ZvbHNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1Mjc2NzUsImV4cCI6MjA1ODEwMzY3NX0";  
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    console.log("✅ Supabase inicializado correctamente");
 
     // Variables globales
-    var map = L.map('map').setView([21.424772, -104.896157], 18);
-    var marker = null;
-    var selectedLat = null;
-    var selectedLng = null;
-    var puestoId = null; // Se actualizará cuando FlutterFlow envíe el ID
+    let map, marker;
+    let selectedLat = null;
+    let selectedLng = null;
+    let puestoId = null; 
 
-    // 🔹 Cargar el mapa base de OpenStreetMap
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '&copy; OpenStreetMap contributors'
-    }).addTo(map);
+    // 🔹 Función para cargar el mapa base de OpenStreetMap
+    function initMap() {
+      map = L.map('map').setView([21.424772, -104.896157], 18);
 
-    // 🔹 Función para actualizar el marcador en el mapa
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+      }).addTo(map);
+
+      // Evento al hacer clic en el mapa para colocar un marcador
+      map.on('click', function(e) {
+        updateMarker(e.latlng.lat, e.latlng.lng);
+      });
+
+      console.log("🔥 Mapa cargado correctamente.");
+    }
+
+    // 🔹 Función para actualizar el marcador
     function updateMarker(lat, lng) {
       if (marker) {
-        marker.setLatLng([lat, lng]); // Mueve el marcador
+        marker.setLatLng([lat, lng]);
       } else {
         marker = L.marker([lat, lng]).addTo(map);
       }
@@ -57,28 +69,27 @@
       selectedLat = lat;
       selectedLng = lng;
 
-      // 🔥 Enviar la ubicación automáticamente a FlutterFlow
-      FlutterFlow.runOnFlutter("actualizarUbicacion", { lat: lat, lng: lng });
+      console.log("📌 Marcador en:", lat, lng);
+
+      // 🔥 Enviar la ubicación a FlutterFlow
+      if (window.FlutterFlow) {
+        FlutterFlow.runOnFlutter("actualizarUbicacion", { lat: lat, lng: lng });
+      }
     }
 
-    // 🔹 Evento para mover el marcador al hacer clic en el mapa
-    map.on('click', function(e) {
-      updateMarker(e.latlng.lat, e.latlng.lng);
-    });
-
-    // 🔥 Recibir el puestoId desde FlutterFlow antes de guardar la ubicación
+    // 🔹 Recibir el puestoId desde FlutterFlow
     function setPuestoId(id) {
       puestoId = id;
       console.log("Puesto ID recibido desde FlutterFlow:", puestoId);
     }
 
     // 🔥 Función para guardar la ubicación en Supabase cuando FlutterFlow presione "Guardar"
-    function guardarUbicacion() {
+    async function guardarUbicacion() {
       if (puestoId && selectedLat && selectedLng) {
-        console.log("Guardando puesto ID: " + puestoId + " con ubicación " + selectedLat + ", " + selectedLng);
-        saveMarkerToSupabase(selectedLat, selectedLng, puestoId);
+        console.log("🚀 Guardando puesto ID:", puestoId, "Ubicación:", selectedLat, selectedLng);
+        await saveMarkerToSupabase(selectedLat, selectedLng, puestoId);
       } else {
-        alert("Por favor selecciona una ubicación antes de guardar.");
+        alert("❌ Debes seleccionar una ubicación antes de guardar.");
       }
     }
 
@@ -90,12 +101,15 @@
         .match({ id: puestoId });
 
       if (error) {
-        console.error("Error guardando en Supabase:", error.message);
+        console.error("❌ Error guardando en Supabase:", error.message);
       } else {
-        console.log("Ubicación guardada en Supabase:", lat, lng);
-        alert("Puesto y ubicación guardados correctamente.");
+        console.log("✅ Ubicación guardada en Supabase:", lat, lng);
+        alert("✅ Puesto y ubicación guardados correctamente.");
       }
     }
+
+    // 🔥 Cargar el mapa al abrir la página
+    document.addEventListener("DOMContentLoaded", initMap);
   </script>
 </body>
 </html>
