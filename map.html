@@ -7,28 +7,20 @@
   <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script> <!-- 🔥 Versión correcta -->
   <style>
-    /* 🔥 Elimina el scroll y ajusta el mapa a pantalla completa */
-    html, body {
-      margin: 0;
-      padding: 0;
-      height: 100%;
-      width: 100%;
-      overflow: hidden;
-    }
-
-    #map {
-      width: 100vw;
-      height: 100vh;
-      position: fixed;
-      top: 0;
-      left: 0;
-    }
+    html, body { margin: 0; padding: 0; height: 100%; width: 100%; overflow: hidden; }
+    #map { width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; }
   </style>
 </head>
 <body>
   <div id="map"></div>
 
   <script>
+    // 🔹 Función para obtener el puestoId desde la URL
+    function getPuestoIdFromUrl() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('puestoId'); // Obtiene el valor del puestoId
+    }
+
     // 🔥 Configurar Supabase correctamente ANTES de usarlo
     const supabaseUrl = "https://ktxbhvfxkerozusfolsl.supabase.co";  
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGJodmZ4a2Vyb3p1c2ZvbHNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1Mjc2NzUsImV4cCI6MjA1ODEwMzY3NX0";  
@@ -44,13 +36,19 @@
 
     // 🔹 Función para cargar el mapa base de OpenStreetMap
     function initMap() {
-      map = L.map('map').setView([21.424772, -104.896157], 18);
+      puestoId = getPuestoIdFromUrl();
+      console.log("📌 Puesto ID recibido:", puestoId);
 
+      if (!puestoId) {
+        alert("❌ Error: No se recibió el puestoId en la URL.");
+        return;  // Detiene la ejecución si no hay puestoId
+      }
+
+      map = L.map('map').setView([21.424772, -104.896157], 18);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors'
       }).addTo(map);
 
-      // Evento al hacer clic en el mapa para colocar un marcador
       map.on('click', function(e) {
         updateMarker(e.latlng.lat, e.latlng.lng);
       });
@@ -70,17 +68,6 @@
       selectedLng = lng;
 
       console.log("📌 Marcador en:", lat, lng);
-
-      // 🔥 Enviar la ubicación a FlutterFlow
-      if (window.FlutterFlow) {
-        FlutterFlow.runOnFlutter("actualizarUbicacion", { lat: lat, lng: lng });
-      }
-    }
-
-    // 🔹 Recibir el puestoId desde FlutterFlow
-    function setPuestoId(id) {
-      puestoId = id;
-      console.log("Puesto ID recibido desde FlutterFlow:", puestoId);
     }
 
     // 🔥 Función para guardar la ubicación en Supabase cuando FlutterFlow presione "Guardar"
