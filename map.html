@@ -26,7 +26,7 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt0eGJodmZ4a2Vyb3p1c2ZvbHNsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDI1Mjc2NzUsImV4cCI6MjA1ODEwMzY3NX0";  
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    console.log("✅ Supabase inicializado correctamente");
+    alert("✅ Supabase inicializado correctamente");
 
     // Variables globales
     let map, marker;
@@ -37,12 +37,13 @@
     // 🔹 Función para cargar el mapa base de OpenStreetMap
     function initMap() {
       puestoId = getPuestoIdFromUrl();
-      console.log("📌 Puesto ID recibido:", puestoId);
-
+      
       if (!puestoId) {
-        alert("❌ Error: No se recibió el puestoId en la URL.");
+        alert("❌ Error: No se recibió puestoId en la URL.");
         return;  // Detiene la ejecución si no hay puestoId
       }
+
+      alert("📌 Puesto ID recibido: " + puestoId);
 
       map = L.map('map').setView([21.424772, -104.896157], 18);
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -53,7 +54,7 @@
         updateMarker(e.latlng.lat, e.latlng.lng);
       });
 
-      console.log("🔥 Mapa cargado correctamente.");
+      alert("🔥 Mapa cargado correctamente.");
     }
 
     // 🔹 Función para actualizar el marcador
@@ -67,13 +68,13 @@
       selectedLat = lat;
       selectedLng = lng;
 
-      console.log("📌 Marcador en:", lat, lng);
+      alert("📌 Marcador en: " + lat + ", " + lng);
     }
 
     // 🔥 Función para guardar la ubicación en Supabase cuando FlutterFlow presione "Guardar"
     async function guardarUbicacion() {
       if (puestoId && selectedLat && selectedLng) {
-        console.log("🚀 Guardando puesto ID:", puestoId, "Ubicación:", selectedLat, selectedLng);
+        alert("🚀 Guardando en Supabase: Puesto ID: " + puestoId + " Lat: " + selectedLat + " Lng: " + selectedLng);
         await saveMarkerToSupabase(selectedLat, selectedLng, puestoId);
       } else {
         alert("❌ Debes seleccionar una ubicación antes de guardar.");
@@ -88,10 +89,9 @@
         .match({ id: puestoId });
 
       if (error) {
-        console.error("❌ Error guardando en Supabase:", error.message);
+        alert("❌ Error guardando en Supabase: " + error.message);
       } else {
-        console.log("✅ Ubicación guardada en Supabase:", lat, lng);
-        alert("✅ Puesto y ubicación guardados correctamente.");
+        alert("✅ Ubicación guardada en Supabase: " + lat + ", " + lng);
       }
     }
 
