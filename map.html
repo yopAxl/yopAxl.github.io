@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Mapa OpenStreetMap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.7.1/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.7.1/dist/leaflet.js"></script>
+  <style>
+    #map { height: 100vh; }
+  </style>
+</head>
+<body>
+  <div id="map"></div>
+  <script>
+    var map = L.map('map').setView([19.4326, -99.1332], 13); // CDMX
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    // Función para agregar marcadores
+    function addMarker(lat, lng) {
+      L.marker([lat, lng]).addTo(map)
+        .bindPopup('Marcador en: ' + lat + ', ' + lng)
+        .openPopup();
+    }
+
+    // Evento al hacer clic en el mapa
+    map.on('click', function(e) {
+      var lat = e.latlng.lat;
+      var lng = e.latlng.lng;
+      addMarker(lat, lng);
+      console.log("Marcador agregado en: " + lat + ", " + lng);
+    });
+  </script>
+</body>
+</html>
